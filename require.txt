@@ -1,0 +1,20 @@
+Control de tráfico inteligente Google Maps
+Dada una red de calles con pesos (tiempo,
+distancia, tráfico), desarrollar un sistema
+que:
+- Encuentre rutas óptimas
+- Minimice congestión global
+- Modele el flujo vehicular
+Fuerza Bruta: evaluar todas las rutas posibles (en redes pequeñas)
+Backtracking: poda de rutas con alto costo
+Divide y vencerás: dividir la ciudad en zonas
+Grafos: modelar intersecciones y calles
+Recorrido (BFS/DFS): exploración de rutas
+Ordenamiento topológico: planificación de semáforos (dependencias)
+SCC: detectar zonas altamente interconectadas
+UFDS: agrupar regiones de tráfico similar
+MST: diseñar red vial eficiente
+Flujo máximo: modelar capacidad de vías
+Voraces: rutas rápidas (tipo Dijkstra/A*)
+Programación dinámica: optimización de rutas repetidas
+DP en grafos: caminos óptimos bajo múltiples condiciones
