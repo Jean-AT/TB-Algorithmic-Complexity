@@ -1,6 +1,6 @@
 import json
-import heapq
 from collections import defaultdict
+import graphviz as gv
 
 
 def load_dataset(path="lima_traffic_dataset.json"):
@@ -8,52 +8,55 @@ def load_dataset(path="lima_traffic_dataset.json"):
         return json.load(f)
 
 
-def build_graph(data, weight_key="tiempo_viaje_min"):
-    graph = defaultdict(list)
+def construir_lista_adyacencia(data):
+    lista = defaultdict(list)
     for edge in data["aristas"]:
-        src = edge["origen"]
-        dst = edge["destino"]
-        weight = edge[weight_key]
-        graph[src].append((dst, weight))
+        origen = edge["origen"]
+        destino = edge["destino"]
+        lista[origen].append(destino)
         if edge["direccion"] == "bidireccional":
-            graph[dst].append((src, weight))
-    return graph
+            lista[destino].append(origen)
+
+    # Asegura que todos los nodos aparezcan aunque no tengan salida
+    for node in data["nodos"]:
+        lista[node["id"]] = lista[node["id"]]
+
+    # Quita duplicados y ordena para salida estable
+    salida = {}
+    for vertice, adyacentes in lista.items():
+        salida[vertice] = sorted(set(adyacentes))
+    return salida
 
 
-def dijkstra(graph, start, end):
-    pq = [(0.0, start, [start])]
-    best = {start: 0.0}
+def dibujarGrafo(listaAdyacencia):
+    grafo = gv.Graph()
+    grafo.attr(rankdir="LR")
+    listaAsignados = set()
 
-    while pq:
-        cost, node, path = heapq.heappop(pq)
-        if node == end:
-            return cost, path
-        if cost > best.get(node, float("inf")):
-            continue
-        for nxt, w in graph[node]:
-            new_cost = cost + w
-            if new_cost < best.get(nxt, float("inf")):
-                best[nxt] = new_cost
-                heapq.heappush(pq, (new_cost, nxt, path + [nxt]))
-    return None, []
+    for vertice in listaAdyacencia:
+        grafo.node(vertice)
+
+    for vertice in listaAdyacencia:
+        for adyacente in listaAdyacencia[vertice]:
+            if (vertice, adyacente) not in listaAsignados:
+                grafo.edge(vertice, adyacente)
+                listaAsignados.add((adyacente, vertice))
+    return grafo
 
 
 def main():
     data = load_dataset()
-    graph = build_graph(data, weight_key="tiempo_viaje_min")
+    listaAdyacencia = construir_lista_adyacencia(data)
 
-    start = data["nodos"][6]["id"]
-    end = data["nodos"][-50]["id"]
-    cost, route = dijkstra(graph, start, end)
+    print("listaAdyacencia = {")
+    for vertice in sorted(listaAdyacencia.keys()):
+        print(f'    "{vertice}": {listaAdyacencia[vertice]},')
+    print("}")
 
-    if route:
-        print("Ruta óptima encontrada")
-        print(f"Origen: {start}")
-        print(f"Destino: {end}")
-        print(f"Tiempo estimado: {cost:.2f} min")
-        print("Ruta:", " -> ".join(route))
-    else:
-        print("No se encontró ruta entre los nodos seleccionados")
+    grafo = dibujarGrafo(listaAdyacencia)
+    grafo.save("traffic_graph.gv")
+    grafo.render("traffic_graph", format="png", cleanup=False)
+    print("Grafo generado: traffic_graph.gv y traffic_graph.png")
 
 
 if __name__ == "__main__":
