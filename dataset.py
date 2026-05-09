@@ -41,8 +41,6 @@ def haversine_dist(lat1, lng1, lat2, lng2):
 
 nodes = []
 node_id = 1
-
-# Generate ~80 intersections per district = 1600 nodes total
 intersections_per_district = 80
 
 for district in districts:
@@ -77,14 +75,12 @@ for district in districts:
         nodes.append(node)
         node_id += 1
 
-# Generate edges (connections between nodes)
 edges = []
 edge_id = 1
 
 node_map = {n["id"]: n for n in nodes}
 node_list = nodes[:]
 
-# Connect nodes within the same district (nearby ones)
 district_nodes = {}
 for n in nodes:
     d = n["distrito"]
@@ -92,9 +88,7 @@ for n in nodes:
         district_nodes[d] = []
     district_nodes[d].append(n)
 
-# Intra-district connections
 for d, dnodes in district_nodes.items():
-    # Sort by lat then connect sequentially + some random cross connections
     sorted_nodes = sorted(dnodes, key=lambda x: (x["latitud"], x["longitud"]))
     for i in range(len(sorted_nodes) - 1):
         src = sorted_nodes[i]
@@ -119,7 +113,6 @@ for d, dnodes in district_nodes.items():
         })
         edge_id += 1
     
-    # Add some random intra-district connections
     for _ in range(20):
         src = random.choice(dnodes)
         dst = random.choice(dnodes)
